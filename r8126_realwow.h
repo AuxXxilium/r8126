@@ -2,10 +2,10 @@
 /*
 ################################################################################
 #
-# r8125 is the Linux device driver released for Realtek 2.5/5 Gigabit Ethernet
+# r8126 is the Linux device driver released for Realtek 5 Gigabit Ethernet
 # controllers with PCI-Express interface.
 #
-# Copyright(c) 2023 Realtek Semiconductor Corp. All rights reserved.
+# Copyright(c) 2024 Realtek Semiconductor Corp. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -32,8 +32,8 @@
  *  US6,570,884, US6,115,776, and US6,327,625.
  ***********************************************************************************/
 
-#ifndef _LINUX_R8125_REALWOW_H
-#define _LINUX_R8125_REALWOW_H
+#ifndef _LINUX_R8126_REALWOW_H
+#define _LINUX_R8126_REALWOW_H
 
 #define SIOCDEVPRIVATE_RTLREALWOW   SIOCDEVPRIVATE+3
 
@@ -110,9 +110,9 @@ typedef struct _RealWoWWPInfo {
         u8 pattern[MAX_RealWoW_Payload];
 } RealWoWWPInfo,*PRealWoWWPInfo;
 
-int rtl8125_realwow_ioctl(struct net_device *dev, struct ifreq *ifr);
-void rtl8125_realwow_hw_init(struct net_device *dev);
-void rtl8125_get_realwow_hw_version(struct net_device *dev);
-void rtl8125_set_realwow_d3_para(struct net_device *dev);
+int rtl8126_realwow_ioctl(struct net_device *dev, struct ifreq *ifr);
+void rtl8126_realwow_hw_init(struct net_device *dev);
+void rtl8126_get_realwow_hw_version(struct net_device *dev);
+void rtl8126_set_realwow_d3_para(struct net_device *dev);
 
-#endif /* _LINUX_R8125_REALWOW_H */
+#endif /* _LINUX_R8126_REALWOW_H */

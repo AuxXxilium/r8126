@@ -2,10 +2,10 @@
 /*
 ################################################################################
 #
-# r8125 is the Linux device driver released for Realtek 2.5/5 Gigabit Ethernet
+# r8126 is the Linux device driver released for Realtek 5 Gigabit Ethernet
 # controllers with PCI-Express interface.
 #
-# Copyright(c) 2023 Realtek Semiconductor Corp. All rights reserved.
+# Copyright(c) 2024 Realtek Semiconductor Corp. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -32,8 +32,8 @@
  *  US6,570,884, US6,115,776, and US6,327,625.
  ***********************************************************************************/
 
-#ifndef _LINUX_rtl8125_PTP_H
-#define _LINUX_rtl8125_PTP_H
+#ifndef _LINUX_R8126_PTP_H
+#define _LINUX_R8126_PTP_H
 
 #include <linux/ktime.h>
 #include <linux/timecounter.h>
@@ -41,7 +41,7 @@
 #include <linux/ptp_clock_kernel.h>
 #include <linux/ptp_classify.h>
 
-struct rtl8125_ptp_info {
+struct rtl8126_ptp_info {
         s64 time_sec;
         u32 time_ns;
         u16 ts_info;
@@ -62,20 +62,20 @@ enum PTP_CMD_TYPE {
 };
 
 
-struct rtl8125_private;
+struct rtl8126_private;
 struct RxDescV3;
 
-int rtl8125_get_ts_info(struct net_device *netdev,
+int rtl8126_get_ts_info(struct net_device *netdev,
                         struct ethtool_ts_info *info);
 
-void rtl8125_ptp_reset(struct rtl8125_private *tp);
-void rtl8125_ptp_init(struct rtl8125_private *tp);
-void rtl8125_ptp_suspend(struct rtl8125_private *tp);
-void rtl8125_ptp_stop(struct rtl8125_private *tp);
+void rtl8126_ptp_reset(struct rtl8126_private *tp);
+void rtl8126_ptp_init(struct rtl8126_private *tp);
+void rtl8126_ptp_suspend(struct rtl8126_private *tp);
+void rtl8126_ptp_stop(struct rtl8126_private *tp);
 
-int rtl8125_ptp_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd);
+int rtl8126_ptp_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd);
 
-void rtl8125_rx_ptp_pktstamp(struct rtl8125_private *tp, struct sk_buff *skb,
+void rtl8126_rx_ptp_pktstamp(struct rtl8126_private *tp, struct sk_buff *skb,
                              struct RxDescV3 *descv3);
 
-#endif /* _LINUX_rtl8125_PTP_H */
+#endif /* _LINUX_R8126_PTP_H */

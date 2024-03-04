@@ -2,10 +2,10 @@
 /*
 ################################################################################
 #
-# r8125 is the Linux device driver released for Realtek 2.5/5 Gigabit Ethernet
+# r8126 is the Linux device driver released for Realtek 5 Gigabit Ethernet
 # controllers with PCI-Express interface.
 #
-# Copyright(c) 2023 Realtek Semiconductor Corp. All rights reserved.
+# Copyright(c) 2024 Realtek Semiconductor Corp. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -42,8 +42,8 @@
 #include <linux/ethtool.h>
 #include <linux/rtnetlink.h>
 
-#include "r8125.h"
-#include "r8125_ptp.h"
+#include "r8126.h"
+#include "r8126_ptp.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
 static inline struct timespec timespec64_to_timespec(const struct timespec64 ts64)
@@ -57,7 +57,7 @@ static inline struct timespec64 timespec_to_timespec64(const struct timespec ts)
 }
 #endif
 
-static int _rtl8125_phc_gettime(struct rtl8125_private *tp, struct timespec64 *ts64)
+static int _rtl8126_phc_gettime(struct rtl8126_private *tp, struct timespec64 *ts64)
 {
         //get local time
         RTL_W16(tp, PTP_TIME_CORRECT_CMD_8125, (PTP_CMD_LATCHED_LOCAL_TIME | PTP_EXEC_CMD));
@@ -75,7 +75,7 @@ static int _rtl8125_phc_gettime(struct rtl8125_private *tp, struct timespec64 *t
         return 0;
 }
 
-static int _rtl8125_phc_settime(struct rtl8125_private *tp, const struct timespec64 *ts64)
+static int _rtl8126_phc_settime(struct rtl8126_private *tp, const struct timespec64 *ts64)
 {
         /* nanoseconds */
         //0x6808[29:0]
@@ -92,7 +92,7 @@ static int _rtl8125_phc_settime(struct rtl8125_private *tp, const struct timespe
         return 0;
 }
 
-static int _rtl8125_phc_adjtime(struct rtl8125_private *tp, s64 delta)
+static int _rtl8126_phc_adjtime(struct rtl8126_private *tp, s64 delta)
 {
         struct timespec64 d;
         bool negative = false;
@@ -141,15 +141,15 @@ static int _rtl8125_phc_adjtime(struct rtl8125_private *tp, s64 delta)
         return 0;
 }
 
-static int rtl8125_phc_adjtime(struct ptp_clock_info *ptp, s64 delta)
+static int rtl8126_phc_adjtime(struct ptp_clock_info *ptp, s64 delta)
 {
-        struct rtl8125_private *tp = container_of(ptp, struct rtl8125_private, ptp_clock_info);
+        struct rtl8126_private *tp = container_of(ptp, struct rtl8126_private, ptp_clock_info);
         int ret;
 
         //netif_info(tp, drv, tp->dev, "phc adjust time\n");
 
         rtnl_lock();
-        ret = _rtl8125_phc_adjtime(tp, delta);
+        ret = _rtl8126_phc_adjtime(tp, delta);
         rtnl_unlock();
 
         return ret;
@@ -169,9 +169,9 @@ static int rtl8125_phc_adjtime(struct ptp_clock_info *ptp, s64 delta)
 
 8ns*10^(-9) = 8 * 2^30 sub_ns * 10^(-9) = 2^33 sub_ns * 10^(-9) = 8.59 sub_ns = 9 sub_ns
 */
-static int _rtl8125_phc_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
+static int _rtl8126_phc_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
 {
-        struct rtl8125_private *tp = container_of(ptp, struct rtl8125_private, ptp_clock_info);
+        struct rtl8126_private *tp = container_of(ptp, struct rtl8126_private, ptp_clock_info);
         bool negative = false;
         u32 sub_ns;
 
@@ -199,54 +199,54 @@ static int _rtl8125_phc_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
         return 0;
 }
 
-static int rtl8125_phc_adjfreq(struct ptp_clock_info *ptp, s32 delta)
+static int rtl8126_phc_adjfreq(struct ptp_clock_info *ptp, s32 delta)
 {
-        //struct rtl8125_private *tp = container_of(ptp, struct rtl8125_private, ptp_clock_info);
+        //struct rtl8126_private *tp = container_of(ptp, struct rtl8126_private, ptp_clock_info);
 
         //netif_info(tp, drv, tp->dev, "phc adjust freq\n");
 
         if (delta > ptp->max_adj || delta < -ptp->max_adj)
                 return -EINVAL;
 
-        _rtl8125_phc_adjfreq(ptp, delta);
+        _rtl8126_phc_adjfreq(ptp, delta);
 
         return 0;
 }
 #endif //LINUX_VERSION_CODE < KERNEL_VERSION(6,2,0)
 
-static int rtl8125_phc_gettime(struct ptp_clock_info *ptp, struct timespec64 *ts64)
+static int rtl8126_phc_gettime(struct ptp_clock_info *ptp, struct timespec64 *ts64)
 {
-        struct rtl8125_private *tp = container_of(ptp, struct rtl8125_private, ptp_clock_info);
+        struct rtl8126_private *tp = container_of(ptp, struct rtl8126_private, ptp_clock_info);
         int ret;
 
         //netif_info(tp, drv, tp->dev, "phc get ts\n");
 
         rtnl_lock();
-        ret = _rtl8125_phc_gettime(tp, ts64);
+        ret = _rtl8126_phc_gettime(tp, ts64);
         rtnl_unlock();
 
         return ret;
 }
 
-static int rtl8125_phc_settime(struct ptp_clock_info *ptp,
+static int rtl8126_phc_settime(struct ptp_clock_info *ptp,
                                const struct timespec64 *ts64)
 {
-        struct rtl8125_private *tp = container_of(ptp, struct rtl8125_private, ptp_clock_info);
+        struct rtl8126_private *tp = container_of(ptp, struct rtl8126_private, ptp_clock_info);
         int ret;
 
         //netif_info(tp, drv, tp->dev, "phc set ts\n");
 
         rtnl_lock();
-        ret = _rtl8125_phc_settime(tp, ts64);
+        ret = _rtl8126_phc_settime(tp, ts64);
         rtnl_unlock();
 
         return ret;
 }
 
-static int rtl8125_phc_enable(struct ptp_clock_info *ptp,
+static int rtl8126_phc_enable(struct ptp_clock_info *ptp,
                               struct ptp_clock_request *rq, int on)
 {
-        struct rtl8125_private *tp = container_of(ptp, struct rtl8125_private, ptp_clock_info);
+        struct rtl8126_private *tp = container_of(ptp, struct rtl8126_private, ptp_clock_info);
         u16 ptp_ctrl;
 
         //netif_info(tp, drv, tp->dev, "phc enable type %x on %d\n", rq->type, on);
@@ -268,10 +268,10 @@ static int rtl8125_phc_enable(struct ptp_clock_info *ptp,
         }
 }
 
-int rtl8125_get_ts_info(struct net_device *netdev,
+int rtl8126_get_ts_info(struct net_device *netdev,
                         struct ethtool_ts_info *info)
 {
-        struct rtl8125_private *tp = netdev_priv(netdev);
+        struct rtl8126_private *tp = netdev_priv(netdev);
 
         /* we always support timestamping disabled */
         info->rx_filters = BIT(HWTSTAMP_FILTER_NONE);
@@ -312,36 +312,36 @@ static const struct ptp_clock_info rtl_ptp_clock_info = {
         .n_pins     = 0,
         .pps        = 1,
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6,2,0)
-        .adjfreq    = rtl8125_phc_adjfreq,
+        .adjfreq    = rtl8126_phc_adjfreq,
 #endif //LINUX_VERSION_CODE < KERNEL_VERSION(6,2,0)
-        .adjtime    = rtl8125_phc_adjtime,
-        .gettime64  = rtl8125_phc_gettime,
-        .settime64  = rtl8125_phc_settime,
-        .enable     = rtl8125_phc_enable,
+        .adjtime    = rtl8126_phc_adjtime,
+        .gettime64  = rtl8126_phc_gettime,
+        .settime64  = rtl8126_phc_settime,
+        .enable     = rtl8126_phc_enable,
 };
 
-static int rtl8125_ptp_egresstime(struct rtl8125_private *tp, struct timespec64 *ts64, u32 regnum)
+static int rtl8126_ptp_egresstime(struct rtl8126_private *tp, struct timespec64 *ts64, u32 regnum)
 {
         /* nanoseconds */
         //[29:0]
-        ts64->tv_nsec = rtl8125_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_NS_8125 + regnum * 16 + 2);
+        ts64->tv_nsec = rtl8126_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_NS_8125 + regnum * 16 + 2);
         ts64->tv_nsec <<= 16;
-        ts64->tv_nsec |= rtl8125_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_NS_8125 + regnum * 16);
+        ts64->tv_nsec |= rtl8126_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_NS_8125 + regnum * 16);
         ts64->tv_nsec &= 0x3fffffff;
 
         /* seconds */
         //[47:0]
-        ts64->tv_sec = rtl8125_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_S_8125 + regnum * 16 + 4);
+        ts64->tv_sec = rtl8126_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_S_8125 + regnum * 16 + 4);
         ts64->tv_sec <<= 16;
-        ts64->tv_sec |= rtl8125_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_S_8125 + regnum * 16 + 2);
+        ts64->tv_sec |= rtl8126_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_S_8125 + regnum * 16 + 2);
         ts64->tv_sec <<= 16;
-        ts64->tv_sec |= rtl8125_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_S_8125 + regnum * 16);
+        ts64->tv_sec |= rtl8126_mac_ocp_read(tp, PTP_EGRESS_TIME_BASE_S_8125 + regnum * 16);
         ts64->tv_sec &= 0x0000ffffffffffff;
 
         return 0;
 }
 
-static void rtl8125_ptp_tx_hwtstamp(struct rtl8125_private *tp)
+static void rtl8126_ptp_tx_hwtstamp(struct rtl8126_private *tp)
 {
         struct sk_buff *skb = tp->ptp_tx_skb;
         struct skb_shared_hwtstamps shhwtstamps = {0};
@@ -356,7 +356,7 @@ static void rtl8125_ptp_tx_hwtstamp(struct rtl8125_private *tp)
         regnum = (regnum + 3) % 4;
 
         rtnl_lock();
-        rtl8125_ptp_egresstime(tp, &ts64, regnum);
+        rtl8126_ptp_egresstime(tp, &ts64, regnum);
         rtnl_unlock();
 
         /* Upper 32 bits contain s, lower 32 bits contain ns. */
@@ -369,27 +369,27 @@ static void rtl8125_ptp_tx_hwtstamp(struct rtl8125_private *tp)
          * while we're notifying the stack.
          */
         tp->ptp_tx_skb = NULL;
-        clear_bit_unlock(__RTL8125_PTP_TX_IN_PROGRESS, &tp->state);
+        clear_bit_unlock(__RTL8126_PTP_TX_IN_PROGRESS, &tp->state);
 
         /* Notify the stack and free the skb after we've unlocked */
         skb_tstamp_tx(skb, &shhwtstamps);
         dev_kfree_skb_any(skb);
 }
 
-#define RTL8125_PTP_TX_TIMEOUT      (HZ * 15)
-static void rtl8125_ptp_tx_work(struct work_struct *work)
+#define RTL8126_PTP_TX_TIMEOUT      (HZ * 15)
+static void rtl8126_ptp_tx_work(struct work_struct *work)
 {
-        struct rtl8125_private *tp = container_of(work, struct rtl8125_private,
+        struct rtl8126_private *tp = container_of(work, struct rtl8126_private,
                                      ptp_tx_work);
 
         if (!tp->ptp_tx_skb)
                 return;
 
         if (time_is_before_jiffies(tp->ptp_tx_start +
-                                   RTL8125_PTP_TX_TIMEOUT)) {
+                                   RTL8126_PTP_TX_TIMEOUT)) {
                 dev_kfree_skb_any(tp->ptp_tx_skb);
                 tp->ptp_tx_skb = NULL;
-                clear_bit_unlock(__RTL8125_PTP_TX_IN_PROGRESS, &tp->state);
+                clear_bit_unlock(__RTL8126_PTP_TX_IN_PROGRESS, &tp->state);
                 tp->tx_hwtstamp_timeouts++;
                 /* Clear the tx valid bit in TSYNCTXCTL register to enable
                  * interrupt
@@ -399,14 +399,14 @@ static void rtl8125_ptp_tx_work(struct work_struct *work)
         }
 
         if (RTL_R8(tp, PTP_ISR_8125) & (PTP_ISR_TOK))
-                rtl8125_ptp_tx_hwtstamp(tp);
+                rtl8126_ptp_tx_hwtstamp(tp);
         else
                 /* reschedule to check later */
                 schedule_work(&tp->ptp_tx_work);
 
 }
 
-static int rtl8125_hwtstamp_enable(struct rtl8125_private *tp, bool enable)
+static int rtl8126_hwtstamp_enable(struct rtl8126_private *tp, bool enable)
 {
         RTL_W16(tp, PTP_CTRL_8125, 0);
         if (enable) {
@@ -416,7 +416,7 @@ static int rtl8125_hwtstamp_enable(struct rtl8125_private *tp, bool enable)
                 //clear ptp isr
                 RTL_W8(tp, PTP_ISR_8125, 0xff);
                 //ptp source 0:gphy 1:mac
-                rtl8125_mac_ocp_write(tp, 0xDC00, rtl8125_mac_ocp_read(tp, 0xDC00) | BIT_6);
+                rtl8126_mac_ocp_write(tp, 0xDC00, rtl8126_mac_ocp_read(tp, 0xDC00) | BIT_6);
                 //enable ptp
                 ptp_ctrl = (BIT_0 | BIT_3 | BIT_4 | BIT_6 | BIT_10 | BIT_12);
                 if (tp->ptp_master_mode)
@@ -426,16 +426,16 @@ static int rtl8125_hwtstamp_enable(struct rtl8125_private *tp, bool enable)
                 //set system time
                 /*
                 if (ktime_to_timespec64_cond(ktime_get_real(), &ts64))
-                _rtl8125_phc_settime(tp, timespec64_to_timespec(ts64));
+                _rtl8126_phc_settime(tp, timespec64_to_timespec(ts64));
                 */
                 ktime_get_real_ts64(&ts64);
-                _rtl8125_phc_settime(tp, &ts64);
+                _rtl8126_phc_settime(tp, &ts64);
         }
 
         return 0;
 }
 
-static long rtl8125_ptp_create_clock(struct rtl8125_private *tp)
+static long rtl8126_ptp_create_clock(struct rtl8126_private *tp)
 {
         struct net_device *netdev = tp->dev;
         long err;
@@ -464,52 +464,52 @@ static long rtl8125_ptp_create_clock(struct rtl8125_private *tp)
         return 0;
 }
 
-void rtl8125_ptp_reset(struct rtl8125_private *tp)
+void rtl8126_ptp_reset(struct rtl8126_private *tp)
 {
         if (!tp->ptp_clock)
                 return;
 
         netif_info(tp, drv, tp->dev, "reset PHC clock\n");
 
-        rtl8125_hwtstamp_enable(tp, false);
+        rtl8126_hwtstamp_enable(tp, false);
 }
 
-void rtl8125_ptp_init(struct rtl8125_private *tp)
+void rtl8126_ptp_init(struct rtl8126_private *tp)
 {
         /* obtain a PTP device, or re-use an existing device */
-        if (rtl8125_ptp_create_clock(tp))
+        if (rtl8126_ptp_create_clock(tp))
                 return;
 
         /* we have a clock so we can initialize work now */
-        INIT_WORK(&tp->ptp_tx_work, rtl8125_ptp_tx_work);
+        INIT_WORK(&tp->ptp_tx_work, rtl8126_ptp_tx_work);
 
         /* reset the PTP related hardware bits */
-        rtl8125_ptp_reset(tp);
+        rtl8126_ptp_reset(tp);
 
         return;
 }
 
-void rtl8125_ptp_suspend(struct rtl8125_private *tp)
+void rtl8126_ptp_suspend(struct rtl8126_private *tp)
 {
         if (!tp->ptp_clock)
                 return;
 
         netif_info(tp, drv, tp->dev, "suspend PHC clock\n");
 
-        rtl8125_hwtstamp_enable(tp, false);
+        rtl8126_hwtstamp_enable(tp, false);
 
         /* ensure that we cancel any pending PTP Tx work item in progress */
         cancel_work_sync(&tp->ptp_tx_work);
 }
 
-void rtl8125_ptp_stop(struct rtl8125_private *tp)
+void rtl8126_ptp_stop(struct rtl8126_private *tp)
 {
         struct net_device *netdev = tp->dev;
 
         netif_info(tp, drv, tp->dev, "stop PHC clock\n");
 
         /* first, suspend PTP activity */
-        rtl8125_ptp_suspend(tp);
+        rtl8126_ptp_suspend(tp);
 
         /* disable the PTP clock device */
         if (tp->ptp_clock) {
@@ -520,9 +520,9 @@ void rtl8125_ptp_stop(struct rtl8125_private *tp)
         }
 }
 
-static int rtl8125_set_tstamp(struct net_device *netdev, struct ifreq *ifr)
+static int rtl8126_set_tstamp(struct net_device *netdev, struct ifreq *ifr)
 {
-        struct rtl8125_private *tp = netdev_priv(netdev);
+        struct rtl8126_private *tp = netdev_priv(netdev);
         struct hwtstamp_config config;
         bool hwtstamp = 0;
 
@@ -565,16 +565,16 @@ static int rtl8125_set_tstamp(struct net_device *netdev, struct ifreq *ifr)
         if (tp->hwtstamp_config.tx_type != config.tx_type ||
             tp->hwtstamp_config.rx_filter != config.rx_filter) {
                 tp->hwtstamp_config = config;
-                rtl8125_hwtstamp_enable(tp, hwtstamp);
+                rtl8126_hwtstamp_enable(tp, hwtstamp);
         }
 
         return copy_to_user(ifr->ifr_data, &config,
                             sizeof(config)) ? -EFAULT : 0;
 }
 
-static int rtl8125_get_tstamp(struct net_device *netdev, struct ifreq *ifr)
+static int rtl8126_get_tstamp(struct net_device *netdev, struct ifreq *ifr)
 {
-        struct rtl8125_private *tp = netdev_priv(netdev);
+        struct rtl8126_private *tp = netdev_priv(netdev);
 
         //netif_info(tp, drv, tp->dev, "ptp get ts\n");
 
@@ -582,7 +582,7 @@ static int rtl8125_get_tstamp(struct net_device *netdev, struct ifreq *ifr)
                             sizeof(tp->hwtstamp_config)) ? -EFAULT : 0;
 }
 
-int rtl8125_ptp_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
+int rtl8126_ptp_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
 {
         int ret;
 
@@ -591,10 +591,10 @@ int rtl8125_ptp_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
         switch (cmd) {
 #ifdef ENABLE_PTP_SUPPORT
         case SIOCSHWTSTAMP:
-                ret = rtl8125_set_tstamp(netdev, ifr);
+                ret = rtl8126_set_tstamp(netdev, ifr);
                 break;
         case SIOCGHWTSTAMP:
-                ret = rtl8125_get_tstamp(netdev, ifr);
+                ret = rtl8126_get_tstamp(netdev, ifr);
                 break;
 #endif
         default:
@@ -605,7 +605,7 @@ int rtl8125_ptp_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
         return ret;
 }
 
-void rtl8125_rx_ptp_pktstamp(struct rtl8125_private *tp, struct sk_buff *skb,
+void rtl8126_rx_ptp_pktstamp(struct rtl8126_private *tp, struct sk_buff *skb,
                              struct RxDescV3 *descv3)
 {
         time64_t tv_sec;

@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-only
 ################################################################################
 #
-# r8125 is the Linux device driver released for Realtek 2.5/5 Gigabit Ethernet
+# r8126 is the Linux device driver released for Realtek 5 Gigabit Ethernet
 # controllers with PCI-Express interface.
 #
-# Copyright(c) 2023 Realtek Semiconductor Corp. All rights reserved.
+# Copyright(c) 2024 Realtek Semiconductor Corp. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -41,7 +41,7 @@ ENABLE_S5_KEEP_CURR_MAC = n
 ENABLE_EEE = y
 ENABLE_S0_MAGIC_PACKET = n
 ENABLE_TX_NO_CLOSE = y
-ENABLE_MULTIPLE_TX_QUEUE = n
+ENABLE_MULTIPLE_TX_QUEUE = y
 ENABLE_PTP_SUPPORT = n
 ENABLE_PTP_MASTER_MODE = n
 ENABLE_RSS_SUPPORT = n
@@ -54,25 +54,25 @@ ENABLE_PAGE_REUSE = n
 ENABLE_RX_PACKET_FRAGMENT = n
 
 ifneq ($(KERNELRELEASE),)
-	obj-m := r8125.o
-	r8125-objs := r8125_n.o rtl_eeprom.o rtltool.o
+	obj-m := r8126.o
+	r8126-objs := r8126_n.o rtl_eeprom.o rtltool.o
 	ifeq ($(CONFIG_SOC_LAN), y)
 		EXTRA_CFLAGS += -DCONFIG_SOC_LAN
 	endif
 	ifeq ($(ENABLE_REALWOW_SUPPORT), y)
-		r8125-objs += r8125_realwow.o
+		r8126-objs += r8126_realwow.o
 		EXTRA_CFLAGS += -DENABLE_REALWOW_SUPPORT
 	endif
 	ifeq ($(ENABLE_DASH_SUPPORT), y)
-		r8125-objs += r8125_dash.o
+		r8126-objs += r8126_dash.o
 		EXTRA_CFLAGS += -DENABLE_DASH_SUPPORT
 	endif
 	ifeq ($(ENABLE_DASH_PRINTER_SUPPORT), y)
-		r8125-objs += r8125_dash.o
+		r8126-objs += r8126_dash.o
 		EXTRA_CFLAGS += -DENABLE_DASH_SUPPORT -DENABLE_DASH_PRINTER_SUPPORT
 	endif
-	EXTRA_CFLAGS += -DCONFIG_R8125_NAPI
-	EXTRA_CFLAGS += -DCONFIG_R8125_VLAN
+	EXTRA_CFLAGS += -DCONFIG_R8126_NAPI
+	EXTRA_CFLAGS += -DCONFIG_R8126_VLAN
 	ifeq ($(CONFIG_DOWN_SPEED_100), y)
 		EXTRA_CFLAGS += -DCONFIG_DOWN_SPEED_100
 	endif
@@ -98,22 +98,22 @@ ifneq ($(KERNELRELEASE),)
 		EXTRA_CFLAGS += -DENABLE_MULTIPLE_TX_QUEUE
 	endif
 	ifeq ($(ENABLE_PTP_SUPPORT), y)
-		r8125-objs += r8125_ptp.o
+		r8126-objs += r8126_ptp.o
 		EXTRA_CFLAGS += -DENABLE_PTP_SUPPORT
 	endif
 	ifeq ($(ENABLE_PTP_MASTER_MODE), y)
 		EXTRA_CFLAGS += -DENABLE_PTP_MASTER_MODE
 	endif
 	ifeq ($(ENABLE_RSS_SUPPORT), y)
-		r8125-objs += r8125_rss.o
+		r8126-objs += r8126_rss.o
 		EXTRA_CFLAGS += -DENABLE_RSS_SUPPORT
 	endif
 	ifeq ($(ENABLE_LIB_SUPPORT), y)
-		r8125-objs += r8125_lib.o
+		r8126-objs += r8126_lib.o
 		EXTRA_CFLAGS += -DENABLE_LIB_SUPPORT
 	endif
 	ifeq ($(ENABLE_USE_FIRMWARE_FILE), y)
-		r8125-objs += r8125_firmware.o
+		r8126-objs += r8126_firmware.o
 		EXTRA_CFLAGS += -DENABLE_USE_FIRMWARE_FILE
 	endif
 	ifeq ($(DISABLE_WOL_SUPPORT), y)

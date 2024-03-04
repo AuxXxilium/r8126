@@ -2,10 +2,10 @@
 /*
 ################################################################################
 #
-# r8125 is the Linux device driver released for Realtek 2.5/5 Gigabit Ethernet
+# r8126 is the Linux device driver released for Realtek 5 Gigabit Ethernet
 # controllers with PCI-Express interface.
 #
-# Copyright(c) 2023 Realtek Semiconductor Corp. All rights reserved.
+# Copyright(c) 2024 Realtek Semiconductor Corp. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -32,37 +32,37 @@
  *  US6,570,884, US6,115,776, and US6,327,625.
  ***********************************************************************************/
 
-#ifndef _LINUX_rtl8125_FIRMWARE_H
-#define _LINUX_rtl8125_FIRMWARE_H
+#ifndef _LINUX_R8126_FIRMWARE_H
+#define _LINUX_R8126_FIRMWARE_H
 
 #include <linux/device.h>
 #include <linux/firmware.h>
 
-struct rtl8125_private;
-typedef void (*rtl8125_fw_write_t)(struct rtl8125_private *tp, u16 reg, u16 val);
-typedef u32 (*rtl8125_fw_read_t)(struct rtl8125_private *tp, u16 reg);
+struct rtl8126_private;
+typedef void (*rtl8126_fw_write_t)(struct rtl8126_private *tp, u16 reg, u16 val);
+typedef u32 (*rtl8126_fw_read_t)(struct rtl8126_private *tp, u16 reg);
 
-#define RTL8125_VER_SIZE		32
+#define RTL8126_VER_SIZE		32
 
-struct rtl8125_fw {
-        rtl8125_fw_write_t phy_write;
-        rtl8125_fw_read_t phy_read;
-        rtl8125_fw_write_t mac_mcu_write;
-        rtl8125_fw_read_t mac_mcu_read;
+struct rtl8126_fw {
+        rtl8126_fw_write_t phy_write;
+        rtl8126_fw_read_t phy_read;
+        rtl8126_fw_write_t mac_mcu_write;
+        rtl8126_fw_read_t mac_mcu_read;
         const struct firmware *fw;
         const char *fw_name;
         struct device *dev;
 
-        char version[RTL8125_VER_SIZE];
+        char version[RTL8126_VER_SIZE];
 
-        struct rtl8125_fw_phy_action {
+        struct rtl8126_fw_phy_action {
                 __le32 *code;
                 size_t size;
         } phy_action;
 };
 
-int rtl8125_fw_request_firmware(struct rtl8125_fw *rtl_fw);
-void rtl8125_fw_release_firmware(struct rtl8125_fw *rtl_fw);
-void rtl8125_fw_write_firmware(struct rtl8125_private *tp, struct rtl8125_fw *rtl_fw);
+int rtl8126_fw_request_firmware(struct rtl8126_fw *rtl_fw);
+void rtl8126_fw_release_firmware(struct rtl8126_fw *rtl_fw);
+void rtl8126_fw_write_firmware(struct rtl8126_private *tp, struct rtl8126_fw *rtl_fw);
 
-#endif /* _LINUX_rtl8125_FIRMWARE_H */
+#endif /* _LINUX_R8126_FIRMWARE_H */
