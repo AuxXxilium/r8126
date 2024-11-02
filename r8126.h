@@ -678,7 +678,7 @@ This is free software, and you are welcome to redistribute it under certain cond
 #ifndef ADVERTISED_2500baseX_Full
 #define ADVERTISED_2500baseX_Full  0x8000
 #endif
-#define RTK_ADVERTISED_5000baseX_Full  BIT(48)
+#define RTK_ADVERTISED_5000baseX_Full  BIT_ULL(48)
 
 #define RTK_ADVERTISE_2500FULL  0x80
 #define RTK_ADVERTISE_5000FULL  0x100
@@ -1560,6 +1560,8 @@ enum RTL8126_register_content {
         _10bps = 0x04,
         LinkStatus = 0x02,
         FullDup = 0x01,
+
+#define RTL8126_FULL_DUPLEX_MASK (_5000bpsF | _2500bpsF | _1000bpsF | FullDup)
 
         /* DBG_reg */
         Fix_Nak_1 = (1 << 4),
